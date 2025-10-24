@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import CustomUser
+import re
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -36,3 +37,31 @@ class CustomAuthenticationForm(AuthenticationForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'class': 'form-control'}),
     )
+    
+# --- NOVO FORMULÁRIO PARA ATUALIZAR O PERFIL ---
+class UserProfileUpdateForm(forms.ModelForm):
+    """
+    Formulário para o usuário editar seus próprios dados de perfil.
+    """
+    class Meta:
+        model = CustomUser
+        # Campos que o usuário PODE editar
+        fields = ('razao_social', 'email')
+
+    def __init__(self, *args, **kwargs):
+        """
+        Adiciona classes do Bootstrap e define o CNPJ como readonly.
+        """
+        super().__init__(*args, **kwargs)
+        
+        # Adiciona um campo 'cnpj' desabilitado, apenas para exibição
+        # Pegamos o valor da 'instance' (o objeto do usuário)
+        cnpj_val = self.instance.cnpj if self.instance else ''
+        self.fields['cnpj'] = forms.CharField(
+            label="CNPJ",
+            initial=cnpj_val,
+            widget=forms.TextInput(attrs={'readonly': True, 'class': 'form-control-plaintext'})
+        )
+        
+        # Reordena os campos
+        self.order_fields(['cnpj', 'razao_social', 'email'])

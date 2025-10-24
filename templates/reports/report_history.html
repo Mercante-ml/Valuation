@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Histórico de Valuations{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="mb-4">Meu Histórico de Relatórios</h1>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">Relatório ID</th>
+                                    <th scope="col">Data da Criação</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-end pe-4">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                <tr>
+                                    <td class="ps-4 fw-medium">#{{ report.id }}</td>
+                                    
+                                    <td>{{ report.created_at|date:"d/m/Y, H:i" }}</td>
+                                    
+                                    <td>
+                                        {% if report.status == 'SUCCESS' %}
+                                            <span class="badge text-bg-success rounded-pill">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Concluído
+                                            </span>
+                                        {% elif report.status == 'PROCESSING' or report.status == 'PENDING' %}
+                                            <span class="badge text-bg-warning rounded-pill">
+                                                <i class="bi bi-hourglass-split me-1"></i> Processando
+                                            </span>
+                                        {% else %}
+                                            <span class="badge text-bg-danger rounded-pill">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Falha
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-end pe-4">
+                                        {% if report.status == 'SUCCESS' %}
+                                            <a href="{% url 'reports:report_detail' pk=report.pk %}" class="btn btn-primary btn-sm">
+                                                Ver Detalhes
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                Indisponível
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center p-5">
+                                        <p class="mb-0 text-muted">Você ainda não gerou nenhum relatório.</p>
+                                        <a href="{% url 'chatbot:dashboard' %}" class="btn btn-primary btn-sm mt-3">
+                                            Iniciar primeira simulação
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

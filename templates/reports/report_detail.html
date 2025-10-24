@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhe do Relatório #{{ report.id }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'reports:report_history' %}" class="btn btn-outline-secondary btn-sm mb-3">
+                <i class="bi bi-arrow-left me-1"></i> Voltar para o Histórico
+            </a>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white p-4">
+                    <h1 class="h3 mb-0">Relatório de Valuation #{{ report.id }}</h1>
+                    <p class="text-muted mb-0">Gerado em: {{ report.created_at|date:"d/m/Y, H:i" }}</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    
+                    {% if report.result_data.gamma_link %}
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading">Relatório Visual (Gamma)</h4>
+                        <p>Sua apresentação personalizada gerada por IA está pronta!</p>
+                        <a href="{{ report.result_data.gamma_link }}" class="btn btn-success" target="_blank">
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i> Abrir Apresentação (Gamma)
+                        </a>
+                    </div>
+                    <hr class="my-4">
+                    {% endif %}
+
+                    <h2 class="h4">Valuation Calculado (Simulação)</h2>
+                    <h3 class="display-5 fw-bold text-primary">
+                        R$ {{ report.result_data.valuation_calculado|floatformat:2 }}
+                    </h3>
+                    <p class="text-muted">Metodologia: {{ report.result_data.metodologia }}</p>
+
+                    <hr class="my-4">
+
+                    <h2 class="h4">Feedback do Assistente IA</h2>
+                    <div class="p-3 bg-light rounded-3">
+                        <p style="white-space: pre-wrap;">{{ report.result_data.feedback_ia }}</p>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h2 class="h4">Dados Fornecidos</h2>
+                    <ul class="list-group">
+                        {% for key, value in report.inputs_data.items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="text-capitalize">{{ key|replace:"_"," " }}</span>
+                                <strong class="text-dark">{{ value }}</strong>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

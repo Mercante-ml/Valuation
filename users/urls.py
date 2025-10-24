@@ -1,5 +1,5 @@
 # apps/users/urls.py
-from django.urls import path
+from django.urls import path, reverse_lazy # <--- ADICIONE reverse_lazy AQUI
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -29,4 +29,27 @@ urlpatterns = [
     path('reset/done/', 
          views.CustomPasswordResetCompleteView.as_view(), 
          name='password_reset_complete'),
+    
+    # --- NOVAS ROTAS ---
+    
+    # 1. Página de Configurações (Editar Perfil)
+    path('settings/', views.profile_settings_view, name='settings'),
+    
+    # 2. Fluxo de Troca de Senha (para usuários LOGADOS)
+    path(
+        'password_change/', 
+        auth_views.PasswordChangeView.as_view(
+            template_name='users/password_change_form.html', # Template que vamos criar
+            success_url=reverse_lazy('users:password_change_done')
+        ), 
+        name='password_change'
+    ),
+    path(
+        'password_change/done/', 
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name='users/password_change_done.html' # Template que vamos criar
+        ), 
+        name='password_change_done'
+    ),
 ]
+

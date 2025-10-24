@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Minhas Configurações{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4">Minhas Configurações</h1>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-pane" type="button" role="tab">
+                        <i class="bi bi-person-fill me-2"></i>Perfil da Empresa
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-pane" type="button" role="tab">
+                        <i class="bi bi-shield-lock-fill me-2"></i>Segurança
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance-pane" type="button" role="tab">
+                        <i class="bi bi-palette-fill me-2"></i>Aparência
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content bg-white p-4 border border-top-0 rounded-bottom">
+                
+                <div class="tab-pane fade show active" id="profile-pane" role="tabpanel">
+                    <h3 class="h5 mb-3">Dados da Empresa</h3>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ profile_form|crispy }}
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="bi bi-save-fill me-2"></i> Salvar Alterações
+                        </button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade" id="security-pane" role="tabpanel">
+                    <h3 class="h5 mb-3">Alterar Senha</h3>
+                    <p>Para sua segurança, alterar sua senha abrirá um fluxo dedicado.</p>
+                    <a href="{% url 'users:password_change' %}" class="btn btn-danger">
+                        <i class="bi bi-key-fill me-2"></i> Alterar minha senha
+                    </a>
+                </div>
+
+                <div class="tab-pane fade" id="appearance-pane" role="tabpanel">
+                    <h3 class="h5 mb-3">Tema (Dark Mode)</h3>
+                    <div class="form-check form-switch form-check-lg">
+                        <input class="form-check-input" type="checkbox" role="switch" id="theme-toggle-switch">
+                        <label class="form-check-label" for="theme-toggle-switch" id="theme-toggle-label">
+                            Ativar Modo Escuro (Dark Mode)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% load static %}
+    <script src="{% static 'js/theme-toggle.js' %}"></script>
+{% endblock %}

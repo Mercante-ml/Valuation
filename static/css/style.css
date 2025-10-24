@@ -98,3 +98,113 @@ body {
     border-top-right-radius: 0.25rem;
     align-self: flex-end;
 }
+
+
+/* --- Overrides para o Dark Mode --- */
+
+/* Diz ao Bootstrap para recalcular cores baseadas no tema */
+[data-bs-theme="dark"] body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+/* Deixa o gradiente do card de auth mais sutil no modo escuro */
+[data-bs-theme="dark"] .card-auth .card-header-grad {
+    background: linear-gradient(135deg, #0d6efd 0%, #043f80 100%);
+}
+
+/* Corrige o fundo branco do Hero Section */
+[data-bs-theme="dark"] .hero-section {
+    background-color: #212529; /* Um cinza escuro */
+    border-bottom-color: #343a40;
+}
+
+[data-bs-theme="dark"] .hero-section .display-4,
+[data-bs-theme="dark"] .hero-section .lead {
+    color: var(--bs-body-color); /* Usa a cor de texto padrão do modo escuro */
+}
+
+/* FIX: Menu Dropdown atrás do Card (Z-Index) */
+.navbar.sticky-top {
+    z-index: 1030;
+}
+
+
+/* --- Mais Overrides para o Dark Mode (v2) --- */
+
+/* 1. Ajustes na Navbar */
+[data-bs-theme="dark"] .navbar.bg-white {
+    background-color: var(--bs-dark-bg-subtle, #1c1f23) !important; /* Usa uma cor escura sutil do BS ou fallback */
+    box-shadow: 0 2px 4px rgba(0,0,0,.5); /* Sombra mais escura */
+}
+
+/* Garante que a marca, links e ícone do toggler fiquem claros */
+[data-bs-theme="dark"] .navbar.bg-white .navbar-brand,
+[data-bs-theme="dark"] .navbar.bg-white .nav-link {
+     /* Usando var(--bs-light) pode ser muito branco, vamos usar a cor padrão do body */
+     color: var(--bs-body-color) !important;
+}
+
+/* Ajusta a cor do ícone do toggler (hamburguer) */
+[data-bs-theme="dark"] .navbar.bg-white .navbar-toggler-icon {
+    /* Usa um filtro para inverter a cor do SVG padrão */
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Mantém o ícone do logo azul (opcional, pode querer branco também) */
+[data-bs-theme="dark"] .navbar.bg-white .navbar-brand i.text-primary {
+     color: var(--bs-primary) !important;
+}
+
+
+/* 2. Ajustes no Conteúdo das Abas e Formulários (Página de Configurações) */
+
+/* Força o fundo do painel da aba escuro com mais especificidade */
+[data-bs-theme="dark"] body .tab-content { /* Adicionado 'body' para aumentar especificidade */
+    background-color: var(--bs-tertiary-bg, #2b3035) !important; /* Adicionado !important */
+    border-color: var(--bs-border-color-translucent);
+    color: var(--bs-body-color); /* Garante que texto padrão fique claro */
+}
+
+/* Garante que títulos H3 e parágrafos dentro do tab-content fiquem claros */
+[data-bs-theme="dark"] .tab-content h3,
+[data-bs-theme="dark"] .tab-content p {
+     color: var(--bs-body-color); /* Força a cor clara padrão */
+}
+
+/* Garante que as labels (Rótulos) fiquem claras */
+[data-bs-theme="dark"] .tab-content label {
+     color: var(--bs-body-color); /* Força a cor clara padrão */
+}
+
+/* Ajusta os campos de input normais */
+[data-bs-theme="dark"] .tab-content .form-control {
+    background-color: var(--bs-body-bg); /* Fundo do input mais escuro (body bg) */
+    color: var(--bs-body-color); /* Texto do input claro */
+    border-color: var(--bs-border-color); /* Borda sutil */
+}
+
+/* Ajusta o campo CNPJ (que é plaintext) */
+[data-bs-theme="dark"] .tab-content .form-control-plaintext {
+    color: var(--bs-secondary-color); /* Cor um pouco mais apagada */
+}
+
+/* Ajusta os botões das abas para terem fundo e borda corretos */
+[data-bs-theme="dark"] .nav-tabs .nav-link {
+    color: var(--bs-nav-tabs-link-active-color);
+    background-color: transparent; /* Remove fundo branco residual */
+    border-color: var(--bs-border-color-translucent);
+}
+[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+    color: var(--bs-nav-tabs-link-active-color);
+    background-color: var(--bs-tertiary-bg); /* Fundo da aba ativa igual ao content */
+    border-color: var(--bs-nav-tabs-link-active-border-color);
+}
+[data-bs-theme="dark"] .nav-tabs {
+    border-bottom-color: var(--bs-nav-tabs-border-color);
+}
+
+/* Garante que o texto do switch de tema fique claro */
+[data-bs-theme="dark"] #appearance-pane .form-check-label {
+    color: var(--bs-body-color);
+}
