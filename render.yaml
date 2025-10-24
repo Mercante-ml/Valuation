@@ -1,0 +1,101 @@
+# render.yaml
+services:
+  # 1. Banco de Dados PostgreSQL Gerenciado pelo Render
+  - type: psql             # Tipo PostgreSQL (Pode dar erro no validador local, mas está correto para o Render)
+    name: valuation-db
+    plan: free
+    # --- Verifique a indentação destas linhas ---
+    databaseName: valuation_db
+    user: valuation_user
+    # --- Fim da verificação ---
+    ipAllowList: []        # Permitir conexões internas do Render
+
+  # 2. Cache Redis Gerenciado pelo Render
+  - type: redis            # Tipo Redis
+    name: valuation-redis
+    plan: free
+    ipAllowList: []        # Permitir conexões internas
+
+  # 3. Aplicação Web Django (Gunicorn via Docker)
+  - type: web              # Tipo Web Service
+    name: valuation-web
+    plan: free
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromService:       # Usar 'fromService'
+          type: psql       # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:       # Usar 'fromService'
+          type: redis      # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:       # Usar 'fromService'
+          type: redis      # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-redis
+          property: connectionString
+      # --- Restante das envVars do Web ---
+      - key: DJANGO_SETTINGS_MODULE
+        value: valuation.settings
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GAMMA_API_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+    buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn valuation.wsgi:application --bind 0.0.0.0:$PORT"
+
+  # 4. Worker do Celery (Background via Docker)
+  - type: worker           # Tipo Background Worker
+    name: valuation-celery
+    plan: free
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: DATABASE_URL
+        fromService:       # Usar 'fromService'
+          type: psql       # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:       # Usar 'fromService'
+          type: redis      # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:       # Usar 'fromService'
+          type: redis      # Especificar o tipo do serviço de origem (Pode dar erro no validador local)
+          name: valuation-redis
+          property: connectionString
+      # --- Restante das envVars do Celery ---
+      - key: DJANGO_SETTINGS_MODULE
+        value: valuation.settings
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GAMMA_API_KEY
+        sync: false
+    startCommand: "celery -A valuation worker --loglevel=info"
