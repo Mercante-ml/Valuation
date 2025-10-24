@@ -19,6 +19,10 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
+# Chave da API do Gemini
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+GAMMA_API_KEY = os.environ.get('GAMMA_API_KEY')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -29,8 +33,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
 
+# Adicione esta linha se for usar HTTPS (Render fornece automaticamente)
+CSRF_TRUSTED_ORIGINS = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(' ')
 
 # Application definition
 
@@ -41,11 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'users',
     'chatbot',
     'reports',
     'crispy_forms',
     'crispy_bootstrap5',
+    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [

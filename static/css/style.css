@@ -204,6 +204,58 @@ body {
     border-bottom-color: var(--bs-nav-tabs-border-color);
 }
 
+/* Ajusta o cabeçalho do card */
+[data-bs-theme="dark"] .card .card-header.bg-white {
+    background-color: var(--bs-tertiary-bg, #2b3035) !important;
+    color: var(--bs-body-color);
+    border-bottom-color: var(--bs-border-color-translucent);
+}
+[data-bs-theme="dark"] .card .card-header p.text-muted {
+     color: var(--bs-secondary-color) !important;
+}
+
+
+/* Ajusta o corpo principal do card */
+[data-bs-theme="dark"] .card .card-body {
+     background-color: var(--bs-tertiary-bg, #2b3035);
+     color: var(--bs-body-color);
+}
+
+/* Força textos (h2, p, strong) dentro do card-body a serem claros */
+[data-bs-theme="dark"] .card .card-body h1,
+[data-bs-theme="dark"] .card .card-body h2,
+[data-bs-theme="dark"] .card .card-body h3,
+[data-bs-theme="dark"] .card .card-body h4,
+[data-bs-theme="dark"] .card .card-body p,
+[data-bs-theme="dark"] .card .card-body strong {
+     color: var(--bs-body-color) !important; /* Força cor clara */
+}
+ /* Exceto o valor principal que é azul */
+[data-bs-theme="dark"] .card .card-body h3.text-primary {
+    color: var(--bs-primary) !important;
+}
+/* E textos muted */
+ [data-bs-theme="dark"] .card .card-body p.text-muted {
+     color: var(--bs-secondary-color) !important;
+ }
+
+
+/* Ajusta a caixa de Análise da IA que usa bg-light */
+[data-bs-theme="dark"] .card .card-body .bg-light {
+    background-color: var(--bs-body-bg) !important; /* Usa fundo principal escuro */
+}
+
+/* Ajusta os itens da lista "Dados Fornecidos" */
+[data-bs-theme="dark"] .card .card-body .list-group-item {
+    background-color: var(--bs-body-bg); /* Fundo escuro */
+    color: var(--bs-body-color); /* Texto claro */
+    border-color: var(--bs-border-color-translucent); /* Borda sutil */
+}
+ /* Garante que o 'strong' na lista fique visível */
+ [data-bs-theme="dark"] .card .card-body .list-group-item strong.text-dark {
+     color: var(--bs-light) !important; /* Força cor clara */
+ }
+
 /* Garante que o texto do switch de tema fique claro */
 [data-bs-theme="dark"] #appearance-pane .form-check-label {
     color: var(--bs-body-color);

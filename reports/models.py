@@ -5,6 +5,13 @@ from django.conf import settings
 class ValuationReport(models.Model):
     """Armazena o resultado de um cálculo de valuation."""
     
+    gamma_presentation_url = models.URLField(
+        max_length=500, # URLs do Gamma podem ser longas
+        null=True,
+        blank=True,
+        help_text="URL da apresentação gerada pelo Gamma (se houver)"
+    ) # <-- ADICIONE ESTE CAMPO
+    
     class StatusChoices(models.TextChoices):
         PENDING = 'PENDING', 'Pendente'
         PROCESSING = 'PROCESSING', 'Processando'
