@@ -1,0 +1,25 @@
+# .gitignore
+
+# Segredos
+.env
+*.env
+
+# Ambiente Virtual
+env/
+venv/
+*.venv/
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# Arquivos de build do Docker
+staticfiles_build/
+
+# Banco de dados local (caso exista)
+db.sqlite3
+*.sqlite3
+
+# Arquivos de IDE (VSCode, PyCharm)
+.vscode/
+.idea/

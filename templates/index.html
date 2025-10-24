@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Valuation IA - Simulação Inteligente de Negócios{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container col-xxl-8 px-4 py-5">
+        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+            <div class="col-10 col-sm-8 col-lg-6">
+                <div class="ratio ratio-16x9 rounded-3 shadow-lg">
+                    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?controls=0&modestbranding=1&rel=0&autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ" title="Vídeo explicativo" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold lh-1 mb-4">Descubra o valor real do seu negócio com IA.</h1>
+                <p class="lead">Nossa ferramenta interativa guia você através das perguntas-chave e entrega um valuation preciso em minutos. Pare de adivinhar, comece a planejar.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'chatbot:dashboard' %}" class="btn btn-primary btn-lg px-4 me-md-2">Ir para o Simulador</a>
+                    {% else %}
+                        <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg px-4 me-md-2">Começar Simulação Grátis</a>
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-secondary btn-lg px-4">Fazer Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container px-4 py-5">
+    <h2 class="pb-2 border-bottom text-center mb-5">Por que usar o Valuation IA?</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="col d-flex align-items-start">
+            <div class="icon-square text-bg-primary bg-gradient fs-4 rounded-3 me-3">
+                <i class="bi bi-robot p-2"></i>
+            </div>
+            <div>
+                <h3 class="fs-4">Guiado por IA</h3>
+                <p>Um chatbot inteligente torna a coleta de dados complexos em uma conversa simples e amigável.</p>
+            </div>
+        </div>
+        <div class="col d-flex align-items-start">
+            <div class="icon-square text-bg-primary bg-gradient fs-4 rounded-3 me-3">
+                <i class="bi bi-bar-chart-line-fill p-2"></i>
+            </div>
+            <div>
+                <h3 class="fs-4">Relatórios Imediatos</h3>
+                <p>Receba seu valuation e um feedback detalhado assim que terminar a simulação, sem espera.</p>
+            </div>
+        </div>
+        <div class="col d-flex align-items-start">
+            <div class="icon-square text-bg-primary bg-gradient fs-4 rounded-3 me-3">
+                <i class="bi bi-shield-check p-2"></i>
+            </div>
+            <div>
+                <h3 class="fs-4">Seguro e Confiável</h3>
+                <p>Seus dados são criptografados e analisados por modelos robustos. (Gamma API / PDF em breve!)</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+# docker-compose.yml
+#version: '3.9'
+
+services:
+  # 1. Serviço do Django (Gunicorn)
+  web:
+    build: .
+    container_name: valuation_web
+    command: gunicorn valuation.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app # Mapeia o código local para dentro do container
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env # Carrega as variáveis de ambiente
+    depends_on:
+      - db      # Espera o DB subir
+      - redis   # Espera o Redis subir
+    restart: always
+
+  # 2. Banco de Dados Postgres
+  db:
+    image: postgres:15
+    container_name: valuation_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      # Essas variáveis são usadas pelo Postgres para criar o DB
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # Expõe a porta do DB (opcional, bom para debugar)
+    restart: always
+
+  # 3. Redis (Broker do Celery)
+  redis:
+    image: redis:7
+    container_name: valuation_redis
+    restart: always
+
+  # 4. Celery Worker (Quem executa as tarefas de IA)
+  celery:
+    build: .
+    container_name: valuation_celery
+    # Comando para iniciar o worker
+    command: celery -A valuation worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    restart: always
+
+volumes:
+  postgres_data: # Volume persistente para o banco de dados
