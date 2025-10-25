@@ -167,7 +167,8 @@ STATICFILES_DIRS = [
 
 # E adicione esta linha para facilitar o gerenciamento
 STATIC_ROOT = BASE_DIR / 'staticfiles_build'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # --- Configuração de Email (Produção/Gmail SMTP) ---
 EMAIL_HOST = 'smtp.gmail.com'
