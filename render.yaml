@@ -1,12 +1,13 @@
-# render.yaml (v6 - Usando DB externo criado manualmente)
+# render.yaml (v7 - Removed startCommand for Docker runtime)
 services:
-  # --- NÃO DEFINIMOS MAIS O BANCO DE DADOS AQUI ---
+  # 1. Banco de Dados PostgreSQL (Criado manualmente)
+  # ... (Banco de dados já foi criado separadamente) ...
 
-  # 2. Cache Redis Gerenciado pelo Render (Ainda via Blueprint)
+  # 2. Cache Redis Gerenciado pelo Render
   - type: redis
     name: valuation-redis
     plan: free
-    region: oregon
+    region: oregon # Use a região onde criou o DB
     ipAllowList: []
 
   # 3. Aplicação Web Django (Gunicorn via Docker)
@@ -18,12 +19,10 @@ services:
     dockerContext: .
     healthCheckPath: /
     envVars:
-      # --- VARIÁVEL PARA O BANCO DE DADOS EXTERNO ---
       - key: DATABASE_URL
-        sync: false # DEFINIREMOS NO DASHBOARD COM A URL INTERNA
-      # --- FIM DA VARIÁVEL DO BANCO ---
+        sync: false # Definido no Dashboard
       - key: REDIS_URL
-        fromService: # Redis ainda é criado via Blueprint
+        fromService:
           type: redis
           name: valuation-redis
           property: connectionString
@@ -32,7 +31,6 @@ services:
           type: redis
           name: valuation-redis
           property: connectionString
-      # --- Restante das envVars do Web ---
       - key: DJANGO_SETTINGS_MODULE
         value: valuation.settings # Verifique o nome da pasta do projeto
       - key: PYTHONUNBUFFERED
@@ -52,7 +50,7 @@ services:
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
         sync: false
     buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "gunicorn valuation.wsgi:application --bind 0.0.0.0:$PORT"
+    # startCommand: REMOVIDO DAQUI
 
   # 4. Worker do Celery (Background via Docker)
   - type: worker
@@ -62,12 +60,10 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     envVars:
-      # --- VARIÁVEL PARA O BANCO DE DADOS EXTERNO ---
       - key: DATABASE_URL
-        sync: false # DEFINIREMOS NO DASHBOARD COM A URL INTERNA
-      # --- FIM DA VARIÁVEL DO BANCO ---
+        sync: false # Definido no Dashboard
       - key: REDIS_URL
-        fromService: # Redis ainda é criado via Blueprint
+        fromService:
           type: redis
           name: valuation-redis
           property: connectionString
@@ -76,7 +72,6 @@ services:
           type: redis
           name: valuation-redis
           property: connectionString
-      # --- Restante das envVars do Celery ---
       - key: DJANGO_SETTINGS_MODULE
         value: valuation.settings # Verifique o nome da pasta do projeto
       - key: PYTHONUNBUFFERED
@@ -89,4 +84,4 @@ services:
         sync: false
       - key: GAMMA_API_KEY
         sync: false
-    startCommand: "celery -A valuation worker --loglevel=info"
+    # startCommand: REMOVIDO DAQUI
