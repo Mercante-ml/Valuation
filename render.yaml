@@ -1,4 +1,4 @@
-# render.yaml (v9 - Separate Dockerfiles)
+# render.yaml (v10 - TESTE: Health check em /admin/login/)
 services:
   # 1. Banco de Dados PostgreSQL (Criado manualmente)
   # O Render já tem o seu DB criado separadamente.
@@ -17,7 +17,9 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile.web # Aponta para o Dockerfile do Gunicorn
     dockerContext: .               # Diretório raiz do projeto
-    healthCheckPath: /             # Rota para verificação de saúde
+    # --- ALTERADO PARA TESTE ---
+    healthCheckPath: /admin/login/ # Tenta verificar uma página mais simples
+    # --- FIM DA ALTERAÇÃO ---
     envVars:
       # Variáveis de ambiente essenciais
       - key: DATABASE_URL          # URL do Banco (definida no Render)
