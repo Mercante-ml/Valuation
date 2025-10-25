@@ -161,9 +161,9 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/Sao_Paulo' # Use seu timezone
 
 # Quase no fim do arquivo, abaixo de STATIC_URL
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+#STATICFILES_DIRS = [
+    #BASE_DIR / 'static',
+#]
 
 # E adicione esta linha para facilitar o gerenciamento
 STATIC_ROOT = BASE_DIR / 'staticfiles_build'
