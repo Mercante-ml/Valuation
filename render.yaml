@@ -1,76 +1,77 @@
-# render.yaml (Final - Health check na raiz)
+# render.yaml
+
 services:
-  # 1. Banco de Dados PostgreSQL (Criado manualmente)
 
-  # 2. Cache Redis Gerenciado pelo Render
-  - type: redis
-    name: valuation-redis
-    plan: free
-    region: oregon
-    ipAllowList: []
+# Banco de Dados PostgreSQL (Criado separadamente)
+# Você pode adicionar sua configuração de banco aqui se necessário
 
-  # 3. Aplicação Web Django (Gunicorn via Docker)
-  - type: web
-    name: valuation-web
-    plan: free
-    runtime: docker
-    dockerfilePath: ./Dockerfile.web
-    dockerContext: .
-    healthCheckPath: / # <-- REVERTIDO PARA A RAIZ
-    envVars:
-      # ... (Todas as envVars do web - DATABASE_URL(sync:false), REDIS_URL(fromService), CELERY_BROKER_URL(fromService), DJANGO_SETTINGS_MODULE, PYTHON*, SECRET_KEY, API_KEYS, DEBUG, HOSTS) ...
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        fromService: { type: redis, name: valuation-redis, property: connectionString }
-      - key: CELERY_BROKER_URL
-        fromService: { type: redis, name: valuation-redis, property: connectionString }
-      - key: DJANGO_SETTINGS_MODULE
-        value: valuation.settings # Verifique o nome da pasta
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
-        value: "1"
-      - key: SECRET_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GAMMA_API_KEY
-        sync: false
-      - key: DEBUG
-        value: "False"
-      - key: DJANGO_ALLOWED_HOSTS
-        sync: false
-      - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        sync: false
-    buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
-    # Nenhum startCommand ou command aqui
+# Redis gerenciado pelo Render
+- type: redis
+  name: valuation-redis
+  plan: free
+  region: oregon
+  ipAllowList: []
 
-  # 4. Worker do Celery (Background via Docker)
-  - type: worker
-    name: valuation-celery
-    plan: free
-    runtime: docker
-    dockerfilePath: ./Dockerfile.worker
-    dockerContext: .
-    envVars:
-      # ... (Todas as envVars do celery - DATABASE_URL(sync:false), REDIS_URL(fromService), CELERY_BROKER_URL(fromService), DJANGO_SETTINGS_MODULE, PYTHON*, SECRET_KEY, API_KEYS) ...
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        fromService: { type: redis, name: valuation-redis, property: connectionString }
-      - key: CELERY_BROKER_URL
-        fromService: { type: redis, name: valuation-redis, property: connectionString }
-      - key: DJANGO_SETTINGS_MODULE
-        value: valuation.settings # Verifique o nome da pasta
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
-        value: "1"
-      - key: SECRET_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GAMMA_API_KEY
-        sync: false
-    # Nenhuma chave 'command' ou 'startCommand' aqui
+# Aplicação Web Django
+- type: web
+  name: valuation-web
+  plan: free
+  runtime: docker
+  dockerfilePath: ./Dockerfile.web
+  dockerContext: .
+  healthCheckPath: /
+  envVars:
+    - key: DATABASE_URL
+      sync: false
+    - key: REDIS_URL
+      fromService: { type: redis, name: valuation-redis, property: connectionString }
+    - key: CELERY_BROKER_URL
+      fromService: { type: redis, name: valuation-redis, property: connectionString }
+    - key: DJANGO_SETTINGS_MODULE
+      value: valuation.settings # Ajuste o nome se sua pasta for diferente
+    - key: PYTHONUNBUFFERED
+      value: "1"
+    - key: PYTHONDONTWRITEBYTECODE
+      value: "1"
+    - key: SECRET_KEY
+      sync: false
+    - key: GEMINI_API_KEY
+      sync: false
+    - key: GAMMA_API_KEY
+      sync: false
+    - key: DEBUG
+      value: "False"
+    - key: DJANGO_ALLOWED_HOSTS
+      sync: false
+    - key: DJANGO_CSRF_TRUSTED_ORIGINS
+      sync: false
+  buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
+  # Se estiver usando staticPublishPath, adicione:
+  # staticPublishPath: staticfiles_build
+
+# Worker do Celery para tarefas assíncronas (deixe igual ao web no que importa)
+- type: worker
+  name: valuation-celery
+  plan: free
+  runtime: docker
+  dockerfilePath: ./Dockerfile.worker
+  dockerContext: .
+  envVars:
+    - key: DATABASE_URL
+      sync: false
+    - key: REDIS_URL
+      fromService: { type: redis, name: valuation-redis, property: connectionString }
+    - key: CELERY_BROKER_URL
+      fromService: { type: redis, name: valuation-redis, property: connectionString }
+    - key: DJANGO_SETTINGS_MODULE
+      value: valuation.settings
+    - key: PYTHONUNBUFFERED
+      value: "1"
+    - key: PYTHONDONTWRITEBYTECODE
+      value: "1"
+    - key: SECRET_KEY
+      sync: false
+    - key: GEMINI_API_KEY
+      sync: false
+    - key: GAMMA_API_KEY
+      sync: false
