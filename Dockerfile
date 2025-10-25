@@ -30,4 +30,4 @@ USER app
 
 # 8. Define o comando padrão para iniciar o container (Gunicorn for web)
 # CORRIGIDO para usar sh -c e interpretar $PORT
-CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "gunicorn --workers 1 valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
