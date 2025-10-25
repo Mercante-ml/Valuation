@@ -153,12 +153,6 @@ LOGOUT_REDIRECT_URL = 'index' # Página pública (vamos criar)
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# --- Configuração de Email (Para Teste) ---
-# Durante o desenvolvimento, o Django imprimirá os emails no console.
-# Para produção, você usará (SendGrid, AWS SES, etc.)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'nao-responda@valuation.com'
-
 # --- Configuração do Celery ---
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -175,3 +169,18 @@ STATICFILES_DIRS = [
 # E adicione esta linha para facilitar o gerenciamento
 STATIC_ROOT = BASE_DIR / 'staticfiles_build'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# --- Configuração de Email (Produção/Gmail SMTP) ---
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Porta para TLS
+EMAIL_USE_TLS = True # Usar TLS (Transport Layer Security)
+# EMAIL_USE_SSL = False # Não use SSL se estiver usando TLS na porta 587
+
+# Lê as credenciais do arquivo .env
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') # A senha de app!
+
+# Email padrão 'De'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL # Para emails de erro do servidor
+ADMINS = [('contato', 'contato@dsprime.net')] # Opcional: Para receber erros

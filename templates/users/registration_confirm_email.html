@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Confirme seu E-mail{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    <i class="bi bi-envelope-check-fill text-primary" style="font-size: 4rem;"></i>
+                    <h2 class="h3 fw-bold mt-3">Quase lá! Confirme seu E-mail</h2>
+                    <p class="text-muted">Enviamos um link de ativação para o seu endereço de e-mail cadastrado.</p>
+                    <p>Por favor, verifique sua caixa de entrada (e spam) e clique no link para ativar sua conta.</p>
+                    <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Voltar para a Página Inicial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

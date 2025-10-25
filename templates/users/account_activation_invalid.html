@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Link Inválido{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+             <div class="card text-center shadow-sm border-0">
+                <div class="card-body p-5">
+                    <i class="bi bi-x-octagon-fill text-danger" style="font-size: 4rem;"></i>
+                    <h2 class="h3 fw-bold mt-3">Link de Ativação Inválido</h2>
+                    <p class="text-muted">O link de ativação que você usou é inválido ou já expirou.</p>
+                    <p>Por favor, tente se cadastrar novamente ou entre em contato com o suporte.</p>
+                    <a href="{% url 'users:register' %}" class="btn btn-secondary mt-3">
+                        Voltar para o Cadastro
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

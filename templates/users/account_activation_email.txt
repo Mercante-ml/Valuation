@@ -1,0 +1,14 @@
+{% autoescape off %}
+Olá {{ user.razao_social }},
+
+Obrigado por se cadastrar no Valuation IA!
+
+Para ativar sua conta e começar a usar a plataforma, por favor, copie e cole o seguinte link no seu navegador:
+
+{{ protocol }}://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}
+
+Se você não se cadastrou, por favor, ignore este e-mail.
+
+Atenciosamente,
+Equipe Valuation IA
+{% endautoescape %}
