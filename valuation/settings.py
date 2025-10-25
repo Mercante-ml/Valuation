@@ -133,7 +133,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -168,8 +168,8 @@ STATICFILES_DIRS = [
 # E adicione esta linha para facilitar o gerenciamento
 STATIC_ROOT = BASE_DIR / 'staticfiles_build'
 #WHITENOISE_STATIC_PREFIX = '/static/'
-#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # --- Configuração de Email (Produção/Gmail SMTP) ---
 EMAIL_HOST = 'smtp.gmail.com'
