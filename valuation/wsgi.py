@@ -14,9 +14,9 @@ from django.conf import settings # Para aceder a STATIC_ROOT
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'valuation.settings')
 
 # Pega a aplicação Django padrão
-_application = get_wsgi_application()
+application = get_wsgi_application()
 
 # --- ENVOLVE A APLICAÇÃO COM WHITENOISE, ESPECIFICANDO O ROOT ---
 # Isto diz explicitamente ao Whitenoise onde procurar os ficheiros
 # que foram coletados pelo collectstatic.
-application = WhiteNoise(_application, root=settings.STATIC_ROOT)
+#application = WhiteNoise(_application, root=settings.STATIC_ROOT)

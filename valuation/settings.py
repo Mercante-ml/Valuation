@@ -167,10 +167,10 @@ CELERY_TIMEZONE = 'America/Sao_Paulo' # Use seu timezone
 
 # E adicione esta linha para facilitar o gerenciamento
 STATIC_ROOT = BASE_DIR / 'staticfiles_build'
-WHITENOISE_ROOT = STATIC_ROOT
+#WHITENOISE_ROOT = STATIC_ROOT
 #WHITENOISE_STATIC_PREFIX = '/static/'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-#STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # --- Configuração de Email (Produção/Gmail SMTP) ---
 EMAIL_HOST = 'smtp.gmail.com'
