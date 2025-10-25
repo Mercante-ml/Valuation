@@ -1,67 +1,74 @@
-# render.yaml (v7 - Removed startCommand for Docker runtime)
+# render.yaml (v9 - Separate Dockerfiles)
 services:
   # 1. Banco de Dados PostgreSQL (Criado manualmente)
-  # ... (Banco de dados já foi criado separadamente) ...
+  # O Render já tem o seu DB criado separadamente.
 
   # 2. Cache Redis Gerenciado pelo Render
   - type: redis
-    name: valuation-redis
-    plan: free
-    region: oregon # Use a região onde criou o DB
-    ipAllowList: []
+    name: valuation-redis # Nome do serviço Redis no Render
+    plan: free           # Plano (pode mudar para starter)
+    region: oregon       # Use a mesma região do seu DB
+    ipAllowList: []      # Permite conexões internas do Render
 
   # 3. Aplicação Web Django (Gunicorn via Docker)
   - type: web
-    name: valuation-web
-    plan: free
+    name: valuation-web   # Nome do serviço Web no Render
+    plan: free           # Plano (pode mudar para starter)
     runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    healthCheckPath: /
+    dockerfilePath: ./Dockerfile.web # Aponta para o Dockerfile do Gunicorn
+    dockerContext: .               # Diretório raiz do projeto
+    healthCheckPath: /             # Rota para verificação de saúde
     envVars:
-      - key: DATABASE_URL
-        sync: false # Definido no Dashboard
-      - key: REDIS_URL
+      # Variáveis de ambiente essenciais
+      - key: DATABASE_URL          # URL do Banco (definida no Render)
+        sync: false
+      - key: REDIS_URL             # URL do Redis (puxada do serviço Redis)
         fromService:
           type: redis
           name: valuation-redis
           property: connectionString
-      - key: CELERY_BROKER_URL
+      - key: CELERY_BROKER_URL     # URL do Broker Celery (igual ao Redis)
         fromService:
           type: redis
           name: valuation-redis
           property: connectionString
       - key: DJANGO_SETTINGS_MODULE
-        value: valuation.settings # Verifique o nome da pasta do projeto
-      - key: PYTHONUNBUFFERED
+        # IMPORTANTE: Verifique se 'valuation' é o nome correto da pasta
+        # que contém o seu settings.py (pode ser 'avaliação')
+        value: valuation.settings
+      - key: PYTHONUNBUFFERED      # Boas práticas para logs
         value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
+      - key: PYTHONDONTWRITEBYTECODE # Boas práticas para logs
         value: "1"
+      # Chaves secretas (definidas no Render)
       - key: SECRET_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GAMMA_API_KEY
         sync: false
+      # Configurações de Produção (definidas no Render)
       - key: DEBUG
-        value: "False"
+        value: "False"             # Força DEBUG=False
       - key: DJANGO_ALLOWED_HOSTS
-        sync: false
+        sync: false             # Será preenchido com a URL do Render
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        sync: false
+        sync: false             # Será preenchido com a URL https do Render
+    # Comandos a executar DURANTE o build da imagem no Render
     buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
-    # startCommand: REMOVIDO DAQUI
+    # Nenhum startCommand ou command aqui, pois o Dockerfile.web define o CMD
 
   # 4. Worker do Celery (Background via Docker)
   - type: worker
-    name: valuation-celery
-    plan: free
+    name: valuation-celery # Nome do serviço Worker no Render
+    plan: free           # Plano (pode mudar para starter)
     runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    dockerfilePath: ./Dockerfile.worker # Aponta para o Dockerfile do Celery
+    dockerContext: .                 # Diretório raiz do projeto
     envVars:
+      # Variáveis de ambiente essenciais (iguais às do web, exceto HOSTS)
       - key: DATABASE_URL
-        sync: false # Definido no Dashboard
+        sync: false
       - key: REDIS_URL
         fromService:
           type: redis
@@ -73,15 +80,17 @@ services:
           name: valuation-redis
           property: connectionString
       - key: DJANGO_SETTINGS_MODULE
-        value: valuation.settings # Verifique o nome da pasta do projeto
+        # IMPORTANTE: Verifique se 'valuation' é o nome correto da pasta
+        value: valuation.settings
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: PYTHONDONTWRITEBYTECODE
         value: "1"
+      # Chaves secretas (definidas no Render)
       - key: SECRET_KEY
         sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GAMMA_API_KEY
         sync: false
-    # startCommand: REMOVIDO DAQUI
+    # Nenhuma chave 'command' ou 'startCommand' aqui, pois o Dockerfile.worker define o CMD
