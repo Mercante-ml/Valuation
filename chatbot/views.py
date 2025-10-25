@@ -9,7 +9,7 @@ from reports.models import ValuationReport
 from .tasks import process_valuation_request
 # Remova a importação antiga de CustomUser se não for mais usada aqui
 
-MAX_FREE_USES = 10
+MAX_FREE_USES = 5
 
 @login_required
 def dashboard_view(request):
