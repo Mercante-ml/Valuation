@@ -1,12 +1,15 @@
-# render.yaml (v4 - Corrected type to 'postgres')
+# render.yaml (v5 - Changed type to 'database')
 services:
   # 1. Banco de Dados PostgreSQL Gerenciado pelo Render
-  - type: postgres         # CORRIGIDO de psql
+  - type: database         # CORRIGIDO de postgres
     name: valuation-db
     plan: free
-    region: oregon        # Mantendo região (bom ter)
-    databaseName: valuation_db
-    user: valuation_user
+    region: oregon
+    # databaseName: valuation_db # Propriedades podem variar com 'database' type
+    # user: valuation_user       # Propriedades podem variar com 'database' type
+    # Nota: Render pode inferir o tipo exato (Postgres) pelo plano ou nome,
+    #       e 'databaseName'/'user' podem não ser necessários ou válidos aqui.
+    #       Vamos tentar sem eles primeiro, o Render criará um DB padrão.
     ipAllowList: []
 
   # 2. Cache Redis Gerenciado pelo Render
@@ -27,9 +30,9 @@ services:
     envVars:
       - key: DATABASE_URL
         fromService:
-          type: postgres   # CORRIGIDO de psql
+          type: database   # CORRIGIDO de postgres
           name: valuation-db
-          property: connectionString
+          property: connectionString # Render sabe que é um DB e fornecerá a string
       - key: REDIS_URL
         fromService:
           type: redis
@@ -42,8 +45,7 @@ services:
           property: connectionString
       # --- Restante das envVars do Web ---
       - key: DJANGO_SETTINGS_MODULE
-        # Verifique se 'valuation' é o nome correto da pasta do seu projeto Django
-        value: valuation.settings
+        value: valuation.settings # Verifique se 'valuation' é o nome da pasta do projeto
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: PYTHONDONTWRITEBYTECODE
@@ -58,46 +60,3 @@ services:
         value: "False"
       - key: DJANGO_ALLOWED_HOSTS
         sync: false
-      - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        sync: false
-    buildCommand: "python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "gunicorn valuation.wsgi:application --bind 0.0.0.0:$PORT"
-
-  # 4. Worker do Celery (Background via Docker)
-  - type: worker
-    name: valuation-celery
-    plan: free
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    envVars:
-      - key: DATABASE_URL
-        fromService:
-          type: postgres   # CORRIGIDO de psql
-          name: valuation-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: valuation-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: valuation-redis
-          property: connectionString
-      # --- Restante das envVars do Celery ---
-      - key: DJANGO_SETTINGS_MODULE
-        # Verifique se 'valuation' é o nome correto
-        value: valuation.settings
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PYTHONDONTWRITEBYTECODE
-        value: "1"
-      - key: SECRET_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GAMMA_API_KEY
-        sync: false
-    startCommand: "celery -A valuation worker --loglevel=info"
