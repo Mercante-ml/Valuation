@@ -86,7 +86,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os ficheiros
 
 # STATICFILES_DIRS deve estar REMOVIDO ou COMENTADO para produção com Whitenoise
-# STATICFILES_DIRS = [ BASE_DIR / 'static', ]
+STATICFILES_DIRS = [ BASE_DIR / 'static', ]
 
 # Usar o storage mais simples do Whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
