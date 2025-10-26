@@ -28,8 +28,5 @@ RUN addgroup --system app && adduser --system --group app
 RUN chown -R app:app /app
 USER app
 
-# 8. (NOVO!) Coleta os arquivos estáticos
-RUN python manage.py collectstatic --noinput
-
 # 9. Define o comando padrão para iniciar o container (Gunicorn for web)
 CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
