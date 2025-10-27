@@ -135,22 +135,38 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json().then(data => ({ status: response.status, body: data })))
         .then(({ status, body }) => {
             if (status === 200) {
-                apiFeedback.innerHTML = `<div class="alert alert-success"><strong>Sucesso!</strong> ${body.message} O resultado aparecerá no seu histórico.</div>`;
-                // Poderia resetar o chat aqui para um novo cálculo
-                // currentQuestionIndex = 0;
-                // chatInputs = {};
-                // chatWindow.innerHTML = ''; // Limpa a janela
-                // askQuestion(); // Pergunta a primeira de novo
-                // Mas por enquanto, apenas reabilita o botão
-                calculateBtn.disabled = false; // Ou mantenha desabilitado até resetar
-                calculateBtn.innerHTML = '<i class="bi bi-calculator-fill me-2"></i> Calcular Novamente (Recarregue)';
+                apiFeedback.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>Sucesso!</strong> ${body.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`;
+                // --- RESETAR O CHAT PARA NOVA SIMULAÇÃO ---
+                // Limpa as respostas armazenadas
+                Object.keys(chatInputs).forEach(key => { chatInputs[key] = null; });
+                currentQuestionIndex = 0;
+
+                // Limpa a janela de chat (opcional, pode querer manter o histórico da última)
+                // chatWindow.innerHTML = ''; // Descomente para limpar visualmente
+
+                // Adiciona uma mensagem indicando que pode começar de novo
+                addChatMessage("Pode iniciar uma nova simulação respondendo à primeira pergunta novamente.");
+
+                // Reabilita o botão e o input, e faz a primeira pergunta
+                calculateBtn.disabled = true; // Desabilita até preencher tudo de novo
+                calculateBtn.innerHTML = '<i class="bi bi-calculator-fill me-2"></i> Calcular Valuation'; // Volta ao texto original
+                setTimeout(askQuestion, 1000); // Pergunta a primeira questão após um segundo
             } else {
+                // Erro (Ex: Limite de uso, validação backend)
                 throw new Error(body.message || `Erro ${status}`);
             }
         })
         .catch(error => {
             console.error('Erro na API:', error);
-            apiFeedback.innerHTML = `<div class="alert alert-danger"><strong>Erro:</strong> ${error.message}</div>`;
+            apiFeedback.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Erro:</strong> ${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
             calculateBtn.disabled = false; // Permite tentar novamente
             calculateBtn.innerHTML = '<i class="bi bi-x-octagon-fill me-2"></i> Falha! Tentar Calcular Novamente';
         });

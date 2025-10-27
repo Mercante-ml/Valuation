@@ -21,28 +21,60 @@
                         <div class="alert alert-danger">
                             <h4 class="alert-heading">Falha no Processamento</h4>
                             <p>Não foi possível gerar seu relatório. Motivo:</p>
-                            <p class="mb-0"><em>{{ report.result_data.error|default:"Erro desconhecido." }}</em></p>
+                            <p class="mb-0"><em>{{ report.result_data.error|default:"Erro desconhecido durante a análise inicial." }}</em></p>
+                        </div>
+                    {% elif report.status == 'PROCESSING' or report.status == 'PENDING' %}
+                         <div class="alert alert-info">
+                            <h4 class="alert-heading">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Processando Relatório...
+                            </h4>
+                            <p class="mb-0">Seu relatório ainda está a ser gerado pela nossa IA. Por favor, aguarde alguns instantes e atualize a página.</p>
                         </div>
                     {% elif report.status == 'SUCCESS' and report.result_data %}
-                        
-                        {% if report.gamma_presentation_url %}
-                        <div class="alert alert-success">
-                            <h4 class="alert-heading">Apresentação Visual (Gamma)</h4>
-                            <p>Sua apresentação personalizada gerada por IA está pronta!</p>
-                            <a href="{{ report.gamma_presentation_url }}" class="btn btn-success" target="_blank">
-                                <i class="bi bi-rocket-takeoff-fill me-2"></i> Abrir Apresentação
-                            </a>
-                        </div>
-                        <hr class="my-4">
-                        {% endif %}
 
+                        <div class="mb-4">
+                            {% if report.gamma_presentation_url %}
+                                <div class="alert alert-success mb-0">
+                                    <h4 class="alert-heading">Apresentação Visual (Gamma)</h4>
+                                    <p>Sua apresentação personalizada gerada por IA está pronta!</p>
+                                    <a href="{{ report.gamma_presentation_url }}" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                                        <i class="bi bi-rocket-takeoff-fill me-2"></i> Abrir Apresentação
+                                    </a>
+                                </div>
+                            {% elif report.result_data.gamma_status == 'pending' %}
+                                <div class="alert alert-info mb-0">
+                                    <h4 class="alert-heading">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Gerando Apresentação Visual...
+                                    </h4>
+                                    <p class="mb-0">A sua apresentação personalizada (Gamma) está a ser criada. Isto pode levar alguns minutos. Por favor, atualize a página mais tarde.</p>
+                                </div>
+                            {% elif report.result_data.gamma_status == 'failed' %}
+                                 <div class="alert alert-warning mb-0">
+                                    <h4 class="alert-heading">Erro na Apresentação</h4>
+                                    <p class="mb-0">Não foi possível gerar a apresentação visual (Gamma) para este relatório.</p>
+                                    {# Opcional: Adicionar botão para tentar gerar novamente? #}
+                                 </div>
+                            {% else %}
+                                {# Caso gamma_status não exista ou seja inesperado, não mostra nada sobre Gamma #}
+                            {% endif %}
+                        </div>
+                        {# Adiciona <hr> apenas se a secção Gamma foi mostrada de alguma forma #}
+                        {% if report.gamma_presentation_url or report.result_data.gamma_status %}
+                            <hr class="my-4">
+                        {% endif %}
                         <h2 class="h4">Valuation Estimado</h2>
-                        <h3 class="display-5 fw-bold text-primary">
-                            R$ {{ report.result_data.valuation_calculado|default:"0"|floatformat:2|intcomma }}
-                        </h3>
-                        <p class="text-muted">
-                            Metodologia: {{ report.result_data.metodologia_usada|default:"Não informada" }}
-                        </p>
+                        {% if report.result_data.valuation_calculado is not None %}
+                            <h3 class="display-5 fw-bold text-primary">
+                                R$ {{ report.result_data.valuation_calculado|floatformat:2|intcomma }}
+                            </h3>
+                            <p class="text-muted">
+                                Metodologia: {{ report.result_data.metodologia_usada|default:"Não informada" }}
+                            </p>
+                        {% else %}
+                            <p class="text-danger"><em>Não foi possível calcular o valuation.</em></p>
+                        {% endif %}
 
                         <hr class="my-4">
 
@@ -50,18 +82,17 @@
                         {% with summary=report.result_data.resumo_para_gamma %}
                             {% if summary %}
                                 <div class="p-3 bg-light rounded-3 mb-3">
-                                    <p><strong>Snapshot Financeiro:</strong> {{ summary.snapshot_financeiro|default:"N/A" }}</p>
-                                    <p><strong>Principais Drivers:</strong> {{ summary.principais_drivers|default:"N/A" }}</p>
+                                    <p><strong>Snapshot Financeiro:</strong> {{ summary.snapshot_financeiro|default:"N/A"|linebreaksbr }}</p>
+                                    <p><strong>Principais Drivers:</strong> {{ summary.principais_drivers|default:"N/A"|linebreaksbr }}</p>
                                 </div>
                                 <div class="p-3 bg-light rounded-3">
-                                    <p><strong>Pontos Fortes:</strong> {{ summary.pontos_fortes|default:"N/A" }}</p>
-                                    <p><strong>Pontos de Atenção:</strong> {{ summary.pontos_atencao|default:"N/A" }}</p>
+                                    <p><strong>Pontos Fortes:</strong> {{ summary.pontos_fortes|default:"N/A"|linebreaksbr }}</p>
+                                    <p><strong>Pontos de Atenção:</strong> {{ summary.pontos_atencao|default:"N/A"|linebreaksbr }}</p>
                                 </div>
                             {% else %}
                                 <p class="text-muted">Resumo da análise não disponível.</p>
                             {% endif %}
                         {% endwith %}
-
 
                         <hr class="my-4">
 
@@ -69,16 +100,18 @@
                         <ul class="list-group">
                             {% for key, value in report.inputs_data.items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-capitalize">{{ key }}</span>
+                                    {# Tenta formatar a chave de forma mais legível #}
+                                    <span class="text-capitalize">{{ key|replace:"_"," "|title }}</span>
                                     <strong class="text-dark">{{ value }}</strong>
                                 </li>
                             {% endfor %}
                         </ul>
 
                     {% else %}
+                         {# Caso inesperado: Status SUCCESS mas sem result_data? #}
                          <div class="alert alert-warning">
-                            <h4 class="alert-heading">Processando...</h4>
-                            <p class="mb-0">Seu relatório ainda está sendo gerado. Por favor, aguarde alguns instantes e atualize a página.</p>
+                            <h4 class="alert-heading">Erro Inesperado</h4>
+                            <p class="mb-0">O relatório foi processado, mas os resultados não estão disponíveis. Por favor, contacte o suporte.</p>
                         </div>
                     {% endif %}
                 </div>
