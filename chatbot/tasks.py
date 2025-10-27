@@ -142,7 +142,7 @@ def generate_gamma_presentation(self, report_id):
 
         # 5. Fazer Polling do status
         while (time.time() - start_time) < timeout_seconds:
-            time.sleep(20) # Aumentado intervalo de polling
+            time.sleep(60) # Aumentado intervalo de polling
             try:
                 response_get = requests.get(status_endpoint, headers=headers, timeout=15) # Adicionado timeout
                 response_get.raise_for_status()
