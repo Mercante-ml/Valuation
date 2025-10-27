@@ -7,8 +7,10 @@ import requests
 import time
 import logging
 from django.conf import settings
+from django.apps import apps # <-- ADICIONADO PARA OBTER O MODELO DE UTILIZADOR
+import random # <-- ADICIONADO PARA RETRY DELAY
 
-logger = logging.getLogger(__name__) # Configura o logger
+logger = logging.getLogger(__name__)
 
 @shared_task
 def process_valuation_request(report_id):
@@ -16,6 +18,7 @@ def process_valuation_request(report_id):
     Tarefa do Celery para processar o valuation usando o agente Gemini
     e disparar a geração Gamma.
     """
+    user = None # Inicializa user
     try:
         report = ValuationReport.objects.get(id=report_id)
         report.status = ValuationReport.StatusChoices.PROCESSING
@@ -43,11 +46,14 @@ def process_valuation_request(report_id):
             logger.info(f"Agente Gemini concluiu com sucesso para Report {report_id}.")
 
             # 4. Atualiza o contador de uso APENAS em caso de sucesso do Gemini
-            # Usar update para evitar race conditions se o objeto user foi modificado
-            CustomUser = settings.AUTH_USER_MODEL # Obter o modelo de usuário dinamicamente
-            user_model = apps.get_model(CustomUser.split('.')[0], CustomUser.split('.')[1])
-            user_model.objects.filter(pk=user.pk).update(usage_count=F('usage_count') + 1)
-            logger.info(f"Contador de uso incrementado para user {user.pk}")
+            if user: # Garante que user não é None
+                # Obtém a classe do modelo de utilizador a partir de settings.AUTH_USER_MODEL
+                User = apps.get_model(settings.AUTH_USER_MODEL)
+                # Atualiza diretamente no banco de dados para evitar race conditions
+                User.objects.filter(pk=user.pk).update(usage_count=F('usage_count') + 1)
+                logger.info(f"Contador de uso incrementado para user {user.pk}")
+            else:
+                 logger.warning(f"Objeto User não disponível para incrementar usage_count no Report {report_id}")
 
 
             # 5. Prepara para disparar Gamma: Adiciona status pendente
@@ -69,6 +75,8 @@ def process_valuation_request(report_id):
             logger.info(f"Disparando tarefa generate_gamma_presentation para Report {report_id}")
             generate_gamma_presentation.delay(report_id)
 
+    # REMOVIDOS BLOCOS except DUPLICADOS DAQUI
+
     except ValuationReport.DoesNotExist:
         logger.error(f"Erro CRÍTICO: Relatório {report_id} não encontrado em process_valuation_request.")
     except Exception as e:
@@ -85,8 +93,8 @@ def process_valuation_request(report_id):
              logger.error(f"Erro ao tentar marcar Report {report_id} como falho após exceção principal: {inner_e}")
 
 
-# --- TAREFA PARA GERAR APRESENTAÇÃO GAMMA ---
-@shared_task(bind=True, max_retries=3, default_retry_delay=60) # Adiciona retentativas
+# --- TAREFA PARA GERAR APRESENTAÇÃO GAMMA (COM RETENTATIVAS) ---
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def generate_gamma_presentation(self, report_id):
     """
     Tarefa Celery para pegar o prompt do report, chamar a API Gamma,
@@ -94,57 +102,55 @@ def generate_gamma_presentation(self, report_id):
     """
     logger.info(f"Iniciando geração Gamma para Report ID: {report_id} (Tentativa {self.request.retries + 1})")
     report = None # Inicializa report como None
+    generation_id = None # Inicializa generation_id
     try:
         report = ValuationReport.objects.get(id=report_id)
 
-        # 1. Verificar se temos um prompt e se o status ainda é 'pending'
+        # 1. Verificar prompt e status
         prompt_gamma = report.result_data.get('prompt_gamma')
         current_gamma_status = report.result_data.get('gamma_status')
 
         if not prompt_gamma:
             logger.warning(f"Report {report_id} não possui prompt_gamma. Abortando tarefa Gamma.")
-            return # Não há o que fazer
-        if current_gamma_status != 'pending':
+            return
+        # Não reprocessar se já completou ou falhou permanentemente
+        if current_gamma_status in ['completed', 'failed']:
              logger.warning(f"Report {report_id} já tem gamma_status '{current_gamma_status}'. Abortando tarefa Gamma.")
-             return # Já processado ou falhou
+             return
 
-        # 2. Verificar API Key do Gamma
+        # 2. Verificar API Key
         gamma_api_key = settings.GAMMA_API_KEY
         if not gamma_api_key:
-            logger.error(f"GAMMA_API_KEY não configurada. Abortando geração para Report {report_id}.")
+            logger.error(f"GAMMA_API_KEY não configurada. Marcando falha para Report {report_id}.")
             if report.result_data:
                 report.result_data['gamma_status'] = 'failed'
                 report.save(update_fields=['result_data'])
             return
 
-        # 3. Preparar chamada para API Gamma
+        # 3. Preparar chamada API
         headers = {"X-API-KEY": gamma_api_key, "Content-Type": "application/json"}
-        gamma_payload = {
-            "inputText": prompt_gamma, "format": "presentation", "textMode": "generate",
-            "textOptions": {"language": "pt-br"},
-        }
+        gamma_payload = {"inputText": prompt_gamma, "format": "presentation", "textMode": "generate", "textOptions": {"language": "pt-br"}}
         gamma_endpoint = "https://public-api.gamma.app/v0.2/generations"
 
-        # 4. Fazer a requisição POST para iniciar a geração
+        # 4. Iniciar Geração
         logger.info(f"Enviando prompt para Gamma API para Report {report_id}")
-        response_post = requests.post(gamma_endpoint, headers=headers, json=gamma_payload, timeout=30) # Adicionado timeout
+        response_post = requests.post(gamma_endpoint, headers=headers, json=gamma_payload, timeout=30)
         response_post.raise_for_status()
-
-        generation_id = response_post.json().get("generationId")
+        generation_id = response_post.json().get("generationId") # Atribui a generation_id
         if not generation_id:
             logger.error(f"Gamma API não retornou generationId para Report {report_id}. Resposta: {response_post.text}")
-            raise ValueError("Gamma API não retornou ID de geração.") # Força falha/retry
+            raise ValueError("Gamma API não retornou ID de geração.")
 
         logger.info(f"Gamma iniciou geração (ID: {generation_id}) para Report {report_id}. Iniciando polling...")
         status_endpoint = f"{gamma_endpoint}/{generation_id}"
         start_time = time.time()
-        timeout_seconds = 480 # Aumentado para 8 minutos
+        timeout_seconds = 480 # 8 minutos
 
-        # 5. Fazer Polling do status
+        # 5. Polling
         while (time.time() - start_time) < timeout_seconds:
-            time.sleep(60) # Aumentado intervalo de polling
+            time.sleep(30) # Verifica a cada 30 segundos
             try:
-                response_get = requests.get(status_endpoint, headers=headers, timeout=15) # Adicionado timeout
+                response_get = requests.get(status_endpoint, headers=headers, timeout=15)
                 response_get.raise_for_status()
                 status_data = response_get.json()
                 current_status = status_data.get('status')
@@ -153,52 +159,54 @@ def generate_gamma_presentation(self, report_id):
                 if current_status == "completed":
                     gamma_url = status_data.get("gammaUrl")
                     if gamma_url:
-                        # 6. Salvar a URL e atualizar status
+                        # 6. Sucesso: Salvar URL e status
                         report.gamma_presentation_url = gamma_url
                         if report.result_data:
                             report.result_data['gamma_status'] = 'completed'
                         report.save(update_fields=['gamma_presentation_url', 'result_data'])
                         logger.info(f"Apresentação Gamma concluída e URL salva para Report {report_id}: {gamma_url}")
-                        return # Sucesso!
+                        return # Sucesso! Termina a tarefa
                     else:
                         logger.error(f"Status Gamma 'completed' mas sem gammaUrl para {generation_id}. Resposta: {status_data}")
-                        raise ValueError("Resposta Gamma 'completed' sem URL.") # Força falha/retry
+                        raise ValueError("Resposta Gamma 'completed' sem URL.")
 
                 elif current_status in ["failed", "error"]:
                      logger.error(f"Geração Gamma falhou explicitamente para {generation_id}. Status: {current_status}. Resposta: {status_data}")
-                     raise ValueError(f"Geração Gamma falhou com status: {current_status}") # Força falha/retry
+                     raise ValueError(f"Geração Gamma falhou com status: {current_status}")
 
             except requests.exceptions.Timeout:
                 logger.warning(f"Timeout durante polling do status Gamma para {generation_id}. Tentando novamente...")
             except requests.exceptions.RequestException as poll_error:
-                logger.warning(f"Erro de rede durante polling do status Gamma para {generation_id}: {poll_error}. Tentando novamente...")
-                # Continua o loop até o timeout ou sucesso/falha explícita
+                # Erros 4xx/5xx no polling são tratados aqui
+                if poll_error.response is not None and 400 <= poll_error.response.status_code < 500:
+                     logger.error(f"Erro cliente ({poll_error.response.status_code}) durante polling Gamma para {generation_id}. Abortando retentativas. Erro: {poll_error}")
+                     raise # Não tentar novamente para erros cliente
+                else:
+                     logger.warning(f"Erro de rede/servidor durante polling Gamma para {generation_id}: {poll_error}. Tentando novamente...")
+            # Continua o loop até timeout ou sucesso/falha explícita
 
-        # Se saiu do loop por timeout geral
+        # Saiu do loop por timeout geral
         logger.error(f"Timeout geral ({timeout_seconds}s) atingido ao esperar geração Gamma para Report {report_id} (ID: {generation_id}).")
-        raise TimeoutError("Geração Gamma demorou demasiado.") # Força falha/retry
+        raise TimeoutError("Geração Gamma demorou demasiado.")
 
     except ValuationReport.DoesNotExist:
         logger.error(f"Erro CRÍTICO: Report {report_id} não encontrado em generate_gamma_presentation.")
-        # Não fazer retry se o report não existe
-    except requests.exceptions.RequestException as api_error:
-        logger.error(f"Erro de API ao chamar Gamma para Report {report_id}: {api_error}. Resposta: {api_error.response.text if api_error.response else 'N/A'}")
-        # Tentar novamente em caso de erro de rede/API? Adicionado retry na task.
+    except (requests.exceptions.RequestException, ValueError, TimeoutError) as e:
+        # Erros esperados que podem justificar retentativa
+        logger.warning(f"Erro tratável ({type(e).__name__}) na tarefa Gamma para Report {report_id}: {e}. Verificando retentativas...")
         try:
-            # Tentar novamente (até max_retries)
-            raise self.retry(exc=api_error, countdown=int(random.uniform(2, 5) * (self.request.retries + 1)))
+            # Tentar novamente com delay exponencial + jitter
+            retry_delay = int(random.uniform(2, 5) * (2 ** self.request.retries))
+            logger.info(f"Agendando retentativa para Report {report_id} em {retry_delay}s.")
+            raise self.retry(exc=e, countdown=retry_delay)
         except self.MaxRetriesExceededError:
-             logger.error(f"Máximo de retentativas atingido para erro de API Gamma no Report {report_id}.")
-             if report and report.result_data: # Marca como falha final se report existir
+             logger.error(f"Máximo de retentativas atingido para Report {report_id} na tarefa Gamma.")
+             if report and report.result_data and report.result_data.get('gamma_status') == 'pending':
                  report.result_data['gamma_status'] = 'failed'
                  report.save(update_fields=['result_data'])
     except Exception as e:
-        logger.exception(f"Erro inesperado na tarefa generate_gamma_presentation para Report {report_id}: {e}")
-        try:
-            # Tentar novamente em caso de erro inesperado?
-             raise self.retry(exc=e, countdown=int(random.uniform(2, 5) * (self.request.retries + 1)))
-        except self.MaxRetriesExceededError:
-            logger.error(f"Máximo de retentativas atingido para erro inesperado na tarefa Gamma no Report {report_id}.")
-            if report and report.result_data: # Marca como falha final se report existir
-                 report.result_data['gamma_status'] = 'failed'
-                 report.save(update_fields=['result_data'])
+        # Erros inesperados
+        logger.exception(f"Erro INESPERADO na tarefa generate_gamma_presentation para Report {report_id}: {e}")
+        if report and report.result_data and report.result_data.get('gamma_status') == 'pending':
+            report.result_data['gamma_status'] = 'failed'
+            report.save(update_fields=['result_data']) # Marca como falha final

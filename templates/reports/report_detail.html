@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %} {% block title %}Detalhe do Relatório #{{ report.id }}{% endblock %}
+{% load humanize %} {% load l10n %} {% block title %}Detalhe do Relatório #{{ report.id }}{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -54,7 +54,6 @@
                                  <div class="alert alert-warning mb-0">
                                     <h4 class="alert-heading">Erro na Apresentação</h4>
                                     <p class="mb-0">Não foi possível gerar a apresentação visual (Gamma) para este relatório.</p>
-                                    {# Opcional: Adicionar botão para tentar gerar novamente? #}
                                  </div>
                             {% else %}
                                 {# Caso gamma_status não exista ou seja inesperado, não mostra nada sobre Gamma #}
@@ -65,6 +64,7 @@
                             <hr class="my-4">
                         {% endif %}
                         <h2 class="h4">Valuation Estimado</h2>
+                        {% localize off %} {# Desliga localização para floatformat funcionar corretamente #}
                         {% if report.result_data.valuation_calculado is not None %}
                             <h3 class="display-5 fw-bold text-primary">
                                 R$ {{ report.result_data.valuation_calculado|floatformat:2|intcomma }}
@@ -75,6 +75,8 @@
                         {% else %}
                             <p class="text-danger"><em>Não foi possível calcular o valuation.</em></p>
                         {% endif %}
+                        {% endlocalize %} {# Religa localização se necessário #}
+
 
                         <hr class="my-4">
 
@@ -94,14 +96,17 @@
                             {% endif %}
                         {% endwith %}
 
+
                         <hr class="my-4">
 
                         <h2 class="h4">Dados Fornecidos</h2>
                         <ul class="list-group">
                             {% for key, value in report.inputs_data.items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {# Tenta formatar a chave de forma mais legível #}
-                                    <span class="text-capitalize">{{ key|replace:"_"," "|title }}</span>
+                                    {# Opção 1: Sem filtro replace, só title #}
+                                    <span class="text-capitalize">{{ key|title }}</span>
+                                    {# Opção 2: Sem filtros extras #}
+                                    {# <span class="text-capitalize">{{ key }}</span> #}
                                     <strong class="text-dark">{{ value }}</strong>
                                 </li>
                             {% endfor %}
