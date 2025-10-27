@@ -11,7 +11,7 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         # Define os campos que aparecerão no formulário
-        fields = ('razao_social', 'cnpj', 'email')
+        fields = ('razao_social', 'cnpj', 'email', 'ddd', 'telefone')
 
     def clean_cnpj(self):
         """Garante que o CNPJ seja salvo apenas com números."""
@@ -46,7 +46,7 @@ class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         # Campos que o usuário PODE editar
-        fields = ('razao_social', 'email')
+        fields = ('razao_social', 'email', 'ddd', 'telefone')
 
     def __init__(self, *args, **kwargs):
         """
@@ -64,4 +64,4 @@ class UserProfileUpdateForm(forms.ModelForm):
         )
         
         # Reordena os campos
-        self.order_fields(['cnpj', 'razao_social', 'email'])
+        self.order_fields(['cnpj', 'razao_social', 'email', 'ddd', 'telefone'])

@@ -71,6 +71,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     razao_social = models.CharField(max_length=255)
     
+    # --- NOVOS CAMPOS ADICIONADOS ---
+    ddd = models.CharField(
+        max_length=2, 
+        blank=True, # Opcional
+        null=True,
+        verbose_name="DDD"
+    )
+    telefone = models.CharField(
+        max_length=10, # Para 9 dígitos (ex: 912345678) ou 8 dígitos
+        blank=True, # Opcional
+        null=True,
+        verbose_name="Telefone (apenas números)"
+    )
+    # --- FIM DOS NOVOS CAMPOS ---
+    
     # Campo para limitar o uso (como você pediu)
     usage_count = models.PositiveIntegerField(
         default=0, 
