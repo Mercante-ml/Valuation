@@ -26,7 +26,7 @@ def run_valuation_agent(inputs_data: dict, user_razao_social: str) -> dict:
     genai.configure(api_key=api_key)
     # Certifique-se que está a usar um modelo disponível, como 'gemini-pro'
     # model = genai.GenerativeModel('gemini-1.5-flash') # Este deu erro 404 antes
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 
     # -- Construção do Prompt para Gemini --
 
