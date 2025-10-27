@@ -46,7 +46,7 @@ services:
   # Worker do Celery
   - type: worker
     name: valuation-celery
-    plan: free
+    plan: starter
     runtime: docker
     dockerfilePath: ./Dockerfile.worker
     dockerContext: .
