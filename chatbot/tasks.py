@@ -9,6 +9,9 @@ import logging
 from django.conf import settings
 from django.apps import apps # <-- ADICIONADO PARA OBTER O MODELO DE UTILIZADOR
 import random # <-- ADICIONADO PARA RETRY DELAY
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +167,12 @@ def generate_gamma_presentation(self, report_id):
                         if report.result_data:
                             report.result_data['gamma_status'] = 'completed'
                         report.save(update_fields=['gamma_presentation_url', 'result_data'])
-                        logger.info(f"Apresentação Gamma concluída e URL salva para Report {report_id}: {gamma_url}")
+                        logger.info(f"Apresentação Gamma concluída e URL salva para Report {report_id}: {gamma_url}")                        
+                        try:
+                            send_gamma_report_email.delay(report_id)
+                            logger.info(f"Tarefa de envio de email disparada para Report {report_id}")
+                        except Exception as e_email:
+                            logger.error(f"Falha ao disparar tarefa send_gamma_report_email para Report {report_id}: {e_email}")                        
                         return # Sucesso! Termina a tarefa
                     else:
                         logger.error(f"Status Gamma 'completed' mas sem gammaUrl para {generation_id}. Resposta: {status_data}")
@@ -210,3 +218,50 @@ def generate_gamma_presentation(self, report_id):
         if report and report.result_data and report.result_data.get('gamma_status') == 'pending':
             report.result_data['gamma_status'] = 'failed'
             report.save(update_fields=['result_data']) # Marca como falha final
+            
+            
+# --- NOVA TAREFA PARA ENVIAR O EMAIL DO RELATÓRIO ---
+@shared_task(bind=True, max_retries=3, default_retry_delay=180) # Tenta novamente após 3 mins se falhar
+def send_gamma_report_email(self, report_id):
+    """
+    Envia um email para o usuário com o link da apresentação Gamma concluída.
+    """
+    logger.info(f"Iniciando envio de email do relatório Gamma para Report ID: {report_id}")
+    try:
+        report = ValuationReport.objects.get(id=report_id)
+        
+        if not report.gamma_presentation_url:
+            logger.warning(f"Report {report_id} não tem URL Gamma. Abortando envio de email.")
+            return
+
+        user = report.user
+        subject = render_to_string('users/gamma_report_subject.txt', {'report': report, 'user': user}).strip()
+        
+        context = {
+            'report': report,
+            'user': user,
+        }
+        
+        html_message = render_to_string('users/gamma_report_email.html', context)
+        # Cria uma versão em texto plano a partir do HTML (fallback)
+        plain_message = strip_tags(html_message) 
+        
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to_email = user.email
+
+        msg = EmailMultiAlternatives(subject, plain_message, from_email, [to_email])
+        msg.attach_alternative(html_message, "text/html")
+        msg.send()
+
+        logger.info(f"Email do relatório Gamma enviado com sucesso para {to_email} (Report {report_id})")
+
+    except ValuationReport.DoesNotExist:
+         logger.error(f"Erro CRÍTICO: Report {report_id} não encontrado em send_gamma_report_email.")
+         # Não fazer retry se o report não existe
+    except Exception as e:
+        logger.error(f"Erro ao enviar email do relatório Gamma para Report {report_id}: {e}", exc_info=True)
+        try:
+            # Tentar novamente (até max_retries)
+            raise self.retry(exc=e, countdown=int(random.uniform(2, 5) * (self.request.retries + 1)))
+        except self.MaxRetriesExceededError:
+             logger.error(f"Máximo de retentativas atingido para envio de email do Report {report_id}.")
