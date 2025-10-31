@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 6. Copia o código do projeto
 COPY . .
+RUN python manage.py collectstatic --noinput
 
 # 7. (Opcional) Usuário não-root por segurança
 RUN addgroup --system app && adduser --system --group app
