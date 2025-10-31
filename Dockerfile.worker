@@ -29,5 +29,5 @@ RUN chown -R app:app /app
 USER app
 
 # 8. Define o comando padrão para iniciar o container (Celery for worker)
-CMD ["celery", "-A", "valuation", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "valuation", "worker", "--loglevel=info", "--concurrency=2"]
 # (Verifique se 'valuation' é o nome correto do seu projeto Celery em celery.py)
