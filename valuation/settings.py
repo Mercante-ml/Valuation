@@ -87,13 +87,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os fich
 
 
 # Vamos tornar o caminho explícito e imprimir para debug
-static_dirs_path = os.path.join(BASE_DIR, 'static')
-print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
-print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
-STATICFILES_DIRS = [ static_dirs_path, ]
+#static_dirs_path = os.path.join(BASE_DIR, 'static')
+#print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
+#print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
+#STATICFILES_DIRS = [ static_dirs_path, ]
 
 # Usar o storage mais simples do Whitenoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # WHITENOISE_ROOT e WHITENOISE_STATIC_PREFIX devem estar REMOVIDOS ou COMENTADOS
 # WHITENOISE_ROOT = STATIC_ROOT
