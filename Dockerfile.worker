@@ -29,5 +29,6 @@ RUN chown -R app:app /app
 USER app
 
 # 8. Define o comando padrão para iniciar o container (Celery for worker)
+# CORRIGIDO: Adicionada flag --concurrency=2 para limitar uso de memória no Render
 CMD ["celery", "-A", "valuation", "worker", "--loglevel=info", "--concurrency=2"]
 # (Verifique se 'valuation' é o nome correto do seu projeto Celery em celery.py)

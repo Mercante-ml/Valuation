@@ -28,7 +28,6 @@ RUN addgroup --system app && adduser --system --group app
 RUN chown -R app:app /app
 USER app
 
-# 9. Define o comando padrão para iniciar o container (Gunicorn for web)
-#CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
+# 8. Define o comando padrão para iniciar o container (Gunicorn for web)
+# CORRIGIDO: Removido o 'collectstatic' daqui. Ele agora só é executado no buildCommand.
 CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
-#CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]

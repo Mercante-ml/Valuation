@@ -30,12 +30,12 @@ INSTALLED_APPS = [
     'reports',
     'crispy_forms',
     'crispy_bootstrap5',
-    # 'whitenoise.runserver_nostatic', # CERTIFIQUE-SE QUE ESTÁ REMOVIDO/COMENTADO
+    # 'whitenoise.runserver_nostatic', # Removido
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-   "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Posição Correta
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,7 +66,7 @@ WSGI_APPLICATION = 'valuation.wsgi.application' # Verifique nome da pasta
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600) if DATABASE_URL else {} # Adicionado 'if' para segurança local
+    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600) if DATABASE_URL else {}
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -81,21 +81,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# --- Configuração de Ficheiros Estáticos (Final Recomendada) ---
+# --- Configuração de Ficheiros Estáticos (CORRIGIDA) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os ficheiros
 
+# REMOVA/COMENTE O BLOCO STATICFILES_DIRS (ele causa conflito em produção)
+# static_dirs_path = os.path.join(BASE_DIR, 'static')
+# print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
+# print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
+# STATICFILES_DIRS = [ static_dirs_path, ]
 
-# Vamos tornar o caminho explícito e imprimir para debug
-#static_dirs_path = os.path.join(BASE_DIR, 'static')
-#print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
-#print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
-#STATICFILES_DIRS = [ static_dirs_path, ]
+# Use o storage RECOMENDADO pelo Whitenoise para produção
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Usar o storage mais simples do Whitenoise
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
-
-# WHITENOISE_ROOT e WHITENOISE_STATIC_PREFIX devem estar REMOVIDOS ou COMENTADOS
+# REMOVA/COMENTE estas linhas (não são necessárias com a config acima)
 # WHITENOISE_ROOT = STATIC_ROOT
 # WHITENOISE_STATIC_PREFIX = '/static/'
 # --- Fim da Configuração de Estáticos ---
@@ -124,4 +123,4 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-ADMINS = [('contato', 'contato@dsprime.net')] # Ajuste conforme necessário
+ADMINS = [('contato', 'contato@dsprime.net')]
