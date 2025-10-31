@@ -85,6 +85,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os ficheiros
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Adiciona a pasta estática global (onde está js, css)
+]
 # REMOVA/COMENTE O BLOCO STATICFILES_DIRS (ele causa conflito em produção com DEBUG=False)
 # static_dirs_path = os.path.join(BASE_DIR, 'static')
 # print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
