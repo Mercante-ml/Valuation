@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'reports',
     'crispy_forms',
     'crispy_bootstrap5',
-    # 'whitenoise.runserver_nostatic', # Removido
+    # 'whitenoise.runserver_nostatic', # Certifique-se que está REMOVIDO
 ]
 
 MIDDLEWARE = [
@@ -44,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'valuation.urls' # Verifique nome da pasta
+ROOT_URLCONF = 'valuation.urls' # Verifique nome da pasta (deve ser 'valuation' ou 'avaliação')
 
 TEMPLATES = [
     {
@@ -94,7 +94,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os fich
 # Use o storage RECOMENDADO pelo Whitenoise para produção (com compressão)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# REMOVA/COMENTE estas linhas (não são necessárias)
+# REMOVA/COMENTE estas linhas (não são necessárias com a config acima)
 # WHITENOISE_ROOT = STATIC_ROOT
 # WHITENOISE_STATIC_PREFIX = '/static/'
 # --- Fim da Configuração de Estáticos ---
