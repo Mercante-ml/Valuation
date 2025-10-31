@@ -93,7 +93,7 @@ print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
 STATICFILES_DIRS = [ static_dirs_path, ]
 
 # Usar o storage mais simples do Whitenoise
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # WHITENOISE_ROOT e WHITENOISE_STATIC_PREFIX devem estar REMOVIDOS ou COMENTADOS
 # WHITENOISE_ROOT = STATIC_ROOT
