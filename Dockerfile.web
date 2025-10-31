@@ -29,5 +29,5 @@ RUN chown -R app:app /app
 USER app
 
 # 8. Define o comando padrão para iniciar o container (Gunicorn for web)
-# CORRIGIDO: Removido o 'collectstatic' daqui. Ele agora só é executado no buildCommand.
+# CORRIGIDO: Removido o 'collectstatic' daqui. Ele é executado no buildCommand do render.yaml.
 CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]

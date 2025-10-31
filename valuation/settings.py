@@ -85,16 +85,16 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os ficheiros
 
-# REMOVA/COMENTE O BLOCO STATICFILES_DIRS (ele causa conflito em produção)
+# REMOVA/COMENTE O BLOCO STATICFILES_DIRS (ele causa conflito em produção com DEBUG=False)
 # static_dirs_path = os.path.join(BASE_DIR, 'static')
 # print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
 # print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
 # STATICFILES_DIRS = [ static_dirs_path, ]
 
-# Use o storage RECOMENDADO pelo Whitenoise para produção
+# Use o storage RECOMENDADO pelo Whitenoise para produção (com compressão)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# REMOVA/COMENTE estas linhas (não são necessárias com a config acima)
+# REMOVA/COMENTE estas linhas (não são necessárias)
 # WHITENOISE_ROOT = STATIC_ROOT
 # WHITENOISE_STATIC_PREFIX = '/static/'
 # --- Fim da Configuração de Estáticos ---
