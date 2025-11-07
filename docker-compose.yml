@@ -4,9 +4,11 @@
 services:
   # 1. Serviço do Django (Gunicorn)
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     container_name: valuation_web
-    command: gunicorn valuation.wsgi:application --bind 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app # Mapeia o código local para dentro do container
     ports:
@@ -29,8 +31,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432" # Expõe a porta do DB (opcional, bom para debugar)
     restart: always
 
   # 3. Redis (Broker do Celery)
@@ -41,7 +41,9 @@ services:
 
   # 4. Celery Worker (Quem executa as tarefas de IA)
   celery:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     container_name: valuation_celery
     # Comando para iniciar o worker
     command: celery -A valuation worker --loglevel=info
