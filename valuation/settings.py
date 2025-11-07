@@ -83,23 +83,18 @@ USE_TZ = True
 
 # --- Configuração de Ficheiros Estáticos (CORRIGIDA) ---
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles_build' # Onde collectstatic coloca os ficheiros
+STATIC_ROOT = BASE_DIR / 'staticfiles_build'
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Adiciona a pasta estática global (onde está js, css)
-]
-# REMOVA/COMENTE O BLOCO STATICFILES_DIRS (ele causa conflito em produção com DEBUG=False)
-# static_dirs_path = os.path.join(BASE_DIR, 'static')
-# print(f"DEBUG: BASE_DIR is: {BASE_DIR}")
-# print(f"DEBUG: STATICFILES_DIRS calculated path is: {static_dirs_path}")
-# STATICFILES_DIRS = [ static_dirs_path, ]
-
-# Use o storage RECOMENDADO pelo Whitenoise para produção (com compressão)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# REMOVA/COMENTE estas linhas (não são necessárias com a config acima)
-# WHITENOISE_ROOT = STATIC_ROOT
-# WHITENOISE_STATIC_PREFIX = '/static/'
+if DEBUG:
+    # Em desenvolvimento, sirva os estáticos diretamente da pasta 'static'
+    STATICFILES_DIRS = [
+        BASE_DIR / "static",
+    ]
+else:
+    # Em produção, o WhiteNoise servirá os ficheiros de 'staticfiles_build'
+    STATICFILES_DIRS = []
+    # Use o storage recomendado pelo Whitenoise para produção (com compressão)
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # --- Fim da Configuração de Estáticos ---
 
 
@@ -118,12 +113,17 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/Sao_Paulo'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-ADMINS = [('contato', 'contato@dsprime.net')]
+if DEBUG:
+    # Em desenvolvimento, use o backend de e-mail do console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # Em produção, use o backend de e-mail SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+    ADMINS = [('contato', 'contato@dsprime.net')]

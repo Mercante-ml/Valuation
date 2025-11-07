@@ -22,13 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 6. Copia o código do projeto
 COPY . .
-RUN python manage.py collectstatic --noinput
 
 # 7. (Opcional) Usuário não-root por segurança
 RUN addgroup --system app && adduser --system --group app
 RUN chown -R app:app /app
 USER app
-
-# 8. Define o comando padrão para iniciar o container (Gunicorn for web)
-# CORRIGIDO: Removido o 'collectstatic'. Ele é executado no buildCommand do render.yaml.
-CMD ["sh", "-c", "gunicorn valuation.wsgi:application --bind 0.0.0.0:${PORT}"]
