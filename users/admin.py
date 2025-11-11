@@ -44,7 +44,7 @@ class CustomUserAdmin(UserAdmin):
         (None, {
             'classes': ('wide',),
             # Usa os campos do CustomUserCreationForm + password
-            'fields': ('cnpj', 'razao_social', 'email', 'ddd', 'telefone', 'password', 'password2'),
+            'fields': ('cnpj', 'razao_social', 'email', 'ddd', 'telefone', 'is_staff', 'is_active', 'password', 'password2'),
         }),
     )
 
